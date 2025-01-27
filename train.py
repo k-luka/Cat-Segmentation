@@ -30,7 +30,7 @@ if gpus:
         print(f"Error setting up GPU: {e}")
 else:
     print("No GPU found. TensorFlow will use the CPU.")
-'''
+
 # -------------------------------------------------------------------
 # 1. Load and Preprocess Data
 # -------------------------------------------------------------------
@@ -77,7 +77,7 @@ unet.compile(
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
-
+'''
 # -------------------------------------------------------------------
 # 5. Define Callbacks
 # -------------------------------------------------------------------
