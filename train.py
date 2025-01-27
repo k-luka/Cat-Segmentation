@@ -158,8 +158,8 @@ if 'history' in locals():
 # 8. Save the Final Model Weights
 # -------------------------------------------------------------------
 print("\nSaving final model weights...")
-unet.save_weights('unet_weights_final.h5')
-print("Weights saved to 'unet_weights_final.h5'.")
+unet.save_weights('unet_weights_final.weights.h5')
+print("Weights saved to 'unet_weights_final.weights.h5'.")
 
 # Save entire model in Keras format
 unet.save('unet_model_final.keras')  # Changed from .h5 to .keras
