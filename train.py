@@ -77,7 +77,7 @@ unet.compile(
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
-'''
+
 # -------------------------------------------------------------------
 # 5. Define Callbacks
 # -------------------------------------------------------------------
@@ -147,4 +147,3 @@ print("Weights saved to 'unet_weights_final.h5'.")
 # Optional: Save the entire model (architecture + weights)
 # unet.save('unet_model_final.h5')
 # print("Entire model saved to 'unet_model_final.h5'.")
-'''
