@@ -5,6 +5,7 @@ from models.model import UNetCompiled
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
+import os
 
 print(tf.__version__)
 
@@ -37,8 +38,8 @@ else:
 # 1. Load and Preprocess Data
 # -------------------------------------------------------------------
 print("\nLoading and preprocessing data...")
-image_dir = r'/content/drive/MyDrive/images'
-mask_dir = r'/content/drive/MyDrive/annotations/trimaps'
+image_dir = r'c:/Users/kiril/Desktop/oxford-iiit-pet/images'
+mask_dir = r'C:/Users/kiril/Desktop/oxford-iiit-pet/annotations/trimaps'
 
 # Load image and mask filenames
 img, mask = LoadData(image_dir, mask_dir)
@@ -77,15 +78,11 @@ valid_dataset = tf.data.Dataset.from_tensor_slices((X_valid, y_valid))\
 
 # -------------------------------------------------------------------
 # 3. Initialize the Model
-# -------------------------------------------------------------------
 print("\nInitializing the U-Net model...")
 unet = UNetCompiled(input_size=(128, 128, 3), n_filters=32, n_classes=3)
-unet.summary()
 
-# -------------------------------------------------------------------
-# 4. Compile the Model
-# -------------------------------------------------------------------
-print("\nCompiling the model...")
+# After model initialization and weights loading
+print("\nCompiling model...")
 unet.compile(
     optimizer=tf.keras.optimizers.Adam(),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -93,66 +90,59 @@ unet.compile(
 )
 
 # -------------------------------------------------------------------
-# 5. Define Callbacks
-# -------------------------------------------------------------------
-print("\nSetting up ModelCheckpoint callback...")
+# 4. Load Pre-trained Weights
 
-checkpoint = ModelCheckpoint(
-    filepath='best_unet_model.keras',  # Changed from .h5 to .keras
-    monitor='val_loss',
-    save_best_only=True,
-    mode='min',
-    verbose=1
-)
+# Define weights path
+weights_path = 'unet_weights.weights.h5'
+full_weights_path = os.path.join(os.path.dirname(__file__), weights_path)
 
-# -------------------------------------------------------------------
-# 6. Train the Model with Interrupt Handling
-# -------------------------------------------------------------------
-print("\nStarting training...")
-try:
-    history = unet.fit(
-        train_dataset,
-        validation_data=valid_dataset,
-        epochs=50,
-        callbacks=[
-            checkpoint,
-            tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True),
-            tf.keras.callbacks.TensorBoard(log_dir='./logs')
-        ]
-    )
-except KeyboardInterrupt:
-    print("\nTraining interrupted by user. Saving current weights...")
-    unet.save_weights('unet_weights_interrupted.h5')
-    print("Weights saved to 'unet_weights_interrupted.h5'. Exiting training.")
+# Check if weights exist
+if not os.path.exists(full_weights_path):
+    print(f"Error: Weights file not found at {full_weights_path}")
+    print("Current working directory:", os.getcwd())
+    print("Files in current directory:", os.listdir())
+    exit(1)
+
+# Load weights with verified path
+print("\nLoading pre-trained weights...")
+unet.load_weights(full_weights_path)
+print("Weights loaded successfully")
 
 # -------------------------------------------------------------------
-# 7. Plot Training History
+# 5. Evaluate Model
+print("\nEvaluating model...")
+evaluation = unet.evaluate(valid_dataset)
+print(f"Validation Loss: {evaluation[0]:.4f}")
+print(f"Validation Accuracy: {evaluation[1]:.4f}")
+
 # -------------------------------------------------------------------
-def plot_training_history(history):
-    print("\nPlotting training history...")
-    fig, axis = plt.subplots(1, 2, figsize=(20, 5))
+# 6. Make Predictions
+print("\nGenerating predictions on validation set...")
+predictions = unet.predict(valid_dataset)
+
+# -------------------------------------------------------------------
+# 7. Visualize Results
+def VisualizeResults(index):
+    img = X_valid[index]
+    img = img[np.newaxis, ...]
+    pred_y = unet.predict(img)
+    pred_mask = tf.argmax(pred_y[0], axis=-1)
+    pred_mask = pred_mask[..., tf.newaxis]
     
-    # Plot Loss
-    axis[0].plot(history.history["loss"], color='r', label='Train Loss')
-    axis[0].plot(history.history["val_loss"], color='b', label='Validation Loss')
-    axis[0].set_title('Loss Comparison')
-    axis[0].set_xlabel('Epoch')
-    axis[0].set_ylabel('Loss')
-    axis[0].legend()
-    
-    # Plot Accuracy
-    axis[1].plot(history.history["accuracy"], color='r', label='Train Accuracy')
-    axis[1].plot(history.history["val_accuracy"], color='b', label='Validation Accuracy')
-    axis[1].set_title('Accuracy Comparison')
-    axis[1].set_xlabel('Epoch')
-    axis[1].set_ylabel('Accuracy')
-    axis[1].legend()
-    
+    fig, arr = plt.subplots(1, 3, figsize=(15, 15))
+    arr[0].imshow(X_valid[index])
+    arr[0].set_title('Processed Image')
+    arr[1].imshow(y_valid[index,:,:,0])
+    arr[1].set_title('Actual Masked Image ')
+    arr[2].imshow(pred_mask[:,:,0])
+    arr[2].set_title('Predicted Masked Image ')
     plt.show()
 
-# Only plot if training was completed without interruption
-if 'history' in locals():
-    plot_training_history(history)
+print("\nVisualizing results...")
+# Visualize first 3 images from validation set
+for i in range(3):
+    print(f"\nVisualizing result {i+1}/3")
+    VisualizeResults(i)
 
 # -------------------------------------------------------------------
 # 8. Save the Final Model Weights
