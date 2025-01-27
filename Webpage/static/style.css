@@ -1,0 +1,44 @@
+:root {
+    --primary-color: #4a90e2;
+    --background-color: #0a192f;  /* Dark blue background */
+    --text-color: #e6f1ff;        /* Light text for contrast */
+    --secondary-bg: #112240;      /* Slightly lighter blue for components */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.drop-zone {
+    border: 2px dashed var(--primary-color);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+    transition: border 0.3s ease;
+    background: var(--secondary-bg);
+}
+
+...existing code...
+
+.submit-btn:hover {
+    background: #2779bd;
+    transform: translateY(-1px);
+}
+
+.result-container {
+    margin-top: 30px;
+    background: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 10px;
+}

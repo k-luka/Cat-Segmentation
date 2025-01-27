@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
 
+print(tf.__version__)
+
 # -------------------------------------------------------------------
 # 0. Configure and Verify GPU Availability
 # -------------------------------------------------------------------
@@ -61,6 +63,18 @@ X_train, X_valid, y_train, y_valid = train_test_split(
 print(f"Training set size: {X_train.shape[0]} samples")
 print(f"Validation set size: {X_valid.shape[0]} samples")
 
+# Modify training setup
+BATCH_SIZE = 32
+AUTOTUNE = tf.data.AUTOTUNE
+
+# Convert to tf.data.Dataset
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))\
+    .batch(BATCH_SIZE)\
+    .prefetch(AUTOTUNE)
+valid_dataset = tf.data.Dataset.from_tensor_slices((X_valid, y_valid))\
+    .batch(BATCH_SIZE)\
+    .prefetch(AUTOTUNE)
+
 # -------------------------------------------------------------------
 # 3. Initialize the Model
 # -------------------------------------------------------------------
@@ -84,11 +98,11 @@ unet.compile(
 print("\nSetting up ModelCheckpoint callback...")
 
 checkpoint = ModelCheckpoint(
-    'best_unet_model.h5',       # Filepath to save the model
-    monitor='val_loss',         # Metric to monitor
-    verbose=1,                  # Verbosity mode
-    save_best_only=True,        # Save only the best model
-    mode='min'                  # Mode for the monitored metric
+    filepath='best_unet_model.keras',  # Changed from .h5 to .keras
+    monitor='val_loss',
+    save_best_only=True,
+    mode='min',
+    verbose=1
 )
 
 # -------------------------------------------------------------------
@@ -97,11 +111,14 @@ checkpoint = ModelCheckpoint(
 print("\nStarting training...")
 try:
     history = unet.fit(
-        X_train, y_train,
-        validation_data=(X_valid, y_valid),
-        epochs=20,
-        batch_size=32,
-        callbacks=[checkpoint]
+        train_dataset,
+        validation_data=valid_dataset,
+        epochs=50,
+        callbacks=[
+            checkpoint,
+            tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True),
+            tf.keras.callbacks.TensorBoard(log_dir='./logs')
+        ]
     )
 except KeyboardInterrupt:
     print("\nTraining interrupted by user. Saving current weights...")
@@ -144,6 +161,6 @@ print("\nSaving final model weights...")
 unet.save_weights('unet_weights_final.h5')
 print("Weights saved to 'unet_weights_final.h5'.")
 
-# Optional: Save the entire model (architecture + weights)
-# unet.save('unet_model_final.h5')
-# print("Entire model saved to 'unet_model_final.h5'.")
+# Save entire model in Keras format
+unet.save('unet_model_final.keras')  # Changed from .h5 to .keras
+print("Entire model saved to 'unet_model_final.keras'.")
