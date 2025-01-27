@@ -60,8 +60,8 @@ def PreprocessData(img, mask, target_shape_img, target_shape_mask, path1, path2)
 
 # Example usage:
 if __name__ == "__main__":
-    image_dir = 'C:/Users/kiril/Desktop/oxford-iiit-pet/images'
-    mask_dir = 'C:/Users/kiril/Desktop/oxford-iiit-pet/annotations/trimaps'
+    image_dir = '/content/drive/MyDrive/images'
+    mask_dir = '/content/drive/MyDrive/annotations/trimaps'
     
     img, mask = LoadData(image_dir, mask_dir)
     
