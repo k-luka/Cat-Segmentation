@@ -35,8 +35,8 @@ else:
 # 1. Load and Preprocess Data
 # -------------------------------------------------------------------
 print("\nLoading and preprocessing data...")
-image_dir = r'C:/Users/kiril/Desktop/oxford-iiit-pet/images'
-mask_dir = r'C:/Users/kiril/Desktop/oxford-iiit-pet/annotations/trimaps'
+image_dir = r'/content/drive/MyDrive/images'
+mask_dir = r'/content/drive/MyDrive/annotations/trimaps'
 
 # Load image and mask filenames
 img, mask = LoadData(image_dir, mask_dir)
